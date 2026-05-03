@@ -215,7 +215,7 @@ export default function App() {
   };
 
   const buildCsvText = () =>
-    shotList.map(([, div, name], idx) => `${idx + 1},${div},${name}`).join("\n");
+    shotList.map(([num, div, name]) => `${num},${div},${name}`).join("\n");
 
   const handleCsvDownload = () => {
     if (shotList.length === 0) return;
@@ -791,43 +791,6 @@ ${csv}
         {/* 報告書タブ */}
         {tab === "report" && (
           <div style={{ paddingTop: 8 }}>
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8, fontWeight: 600 }}>
-                🔄 コードから復元
-              </div>
-              <input
-                value={restoreInput}
-                onChange={e => setRestoreInput(e.target.value)}
-                placeholder="コードを貼り付け..."
-                style={{
-                  width: "100%", padding: "12px 14px", borderRadius: 12,
-                  border: "2px solid #334155", background: "#1e293b",
-                  color: "#f8fafc", fontSize: 14, fontFamily: "inherit",
-                  outline: "none", boxSizing: "border-box", marginBottom: 8,
-                }}
-              />
-              <button
-                onClick={handleRestore}
-                disabled={!restoreInput.trim()}
-                style={{
-                  width: "100%", padding: "12px", borderRadius: 12,
-                  border: "none",
-                  background: restoreInput.trim() ? "#10b981" : "#1e293b",
-                  color: restoreInput.trim() ? "#fff" : "#475569",
-                  fontSize: 14, fontWeight: 700,
-                  cursor: restoreInput.trim() ? "pointer" : "default",
-                  fontFamily: "inherit",
-                }}
-              >
-                復元する
-              </button>
-              {restoreMsg && (
-                <div style={{ marginTop: 8, fontSize: 13, textAlign: "center", color: "#94a3b8" }}>
-                  {restoreMsg}
-                </div>
-              )}
-            </div>
-
             {/* Claudeに送る */}
             <div style={{ marginBottom: 12 }}>
               <button
