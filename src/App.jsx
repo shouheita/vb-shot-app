@@ -151,6 +151,24 @@ function loadFromStorage(key, fallback) {
   }
 }
 
+function parseUrlTeams() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("teams");
+    if (!raw) return null;
+    const parsed = raw.split("|").map(t => {
+      const idx1 = t.indexOf(",");
+      const idx2 = t.indexOf(",", idx1 + 1);
+      const num = parseInt(t.slice(0, idx1));
+      const div = t.slice(idx1 + 1, idx2);
+      const name = t.slice(idx2 + 1);
+      if (!num || !div || !name) return null;
+      return [num, div, name];
+    }).filter(Boolean);
+    return parsed.length > 0 ? parsed : null;
+  } catch { return null; }
+}
+
 export default function App() {
   const [query, setQuery] = useState("");
   const [numMode, setNumMode] = useState(true);
@@ -165,6 +183,7 @@ export default function App() {
   const [setupDone, setSetupDone] = useState(() => loadFromStorage(TEAMS_KEY, null) !== null);
   const [setupText, setSetupText] = useState("");
   const [setupMsg, setSetupMsg] = useState("");
+  const [urlImportData, setUrlImportData] = useState(() => parseUrlTeams());
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -331,6 +350,100 @@ ${csv}`;
     ["report", "📄 報告書"],
     ["import", "📥 インポート"],
   ];
+
+  if (urlImportData) {
+    const divCount = urlImportData.reduce((acc, [, div]) => {
+      acc[div] = (acc[div] || 0) + 1;
+      return acc;
+    }, {});
+    return (
+      <div style={{
+        fontFamily: "'Hiragino Sans', 'Noto Sans JP', sans-serif",
+        background: "#0f172a", minHeight: "100vh", color: "#f8fafc",
+        maxWidth: 480, margin: "0 auto",
+        display: "flex", flexDirection: "column", justifyContent: "center",
+        padding: "32px 24px",
+      }}>
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>チームデータをインポート</div>
+          <div style={{ fontSize: 13, color: "#64748b" }}>Claudeが生成したデータを読み込みます</div>
+        </div>
+
+        <div style={{ background: "#1e293b", borderRadius: 14, padding: "16px 18px", marginBottom: 20 }}>
+          <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 10, fontWeight: 600 }}>インポート内容</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>
+            {urlImportData.length} チーム
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {Object.entries(divCount).map(([div, count]) => (
+              <div key={div} style={{
+                background: DIV_BG[div] ?? "#f1f5f9",
+                color: DIV_COLOR[div] ?? "#334155",
+                borderRadius: 8, padding: "4px 12px",
+                fontSize: 12, fontWeight: 700,
+              }}>
+                {div} {count}チーム
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ maxHeight: 200, overflowY: "auto", marginBottom: 20 }}>
+          {urlImportData.map(([num, div, name]) => (
+            <div key={`${num}-${div}`} style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "8px 0", borderBottom: "1px solid #1e293b",
+            }}>
+              <div style={{
+                minWidth: 32, height: 32, borderRadius: 6,
+                background: DIV_BG[div] ?? "#f1f5f9",
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: DIV_COLOR[div] ?? "#334155", lineHeight: 1 }}>{num}</div>
+                <div style={{ fontSize: 7, color: DIV_COLOR[div] ?? "#334155", fontWeight: 600 }}>{div}</div>
+              </div>
+              <div style={{ fontSize: 13, color: "#cbd5e1" }}>{name}</div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={() => {
+            setTeams(urlImportData);
+            localStorage.setItem(TEAMS_KEY, JSON.stringify(urlImportData));
+            setShotList([]);
+            setSetupDone(true);
+            setUrlImportData(null);
+            window.history.replaceState({}, "", window.location.pathname);
+          }}
+          style={{
+            width: "100%", padding: "16px", borderRadius: 12, border: "none",
+            background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+            color: "#fff", fontSize: 16, fontWeight: 700,
+            cursor: "pointer", fontFamily: "inherit", marginBottom: 12,
+          }}
+        >
+          インポートして開始
+        </button>
+        <button
+          onClick={() => {
+            setUrlImportData(null);
+            window.history.replaceState({}, "", window.location.pathname);
+          }}
+          style={{
+            width: "100%", padding: "14px", borderRadius: 12,
+            border: "2px solid #334155", background: "transparent",
+            color: "#64748b", fontSize: 14, fontWeight: 600,
+            cursor: "pointer", fontFamily: "inherit",
+          }}
+        >
+          キャンセル
+        </button>
+      </div>
+    );
+  }
 
   if (!setupDone) {
     return (
