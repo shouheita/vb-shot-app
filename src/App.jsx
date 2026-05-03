@@ -258,8 +258,8 @@ ${csv}
 
   const handleCopy = async () => {
     if (shotList.length === 0) return;
-    const rows = shotList.map(([num, div, name], idx) =>
-      `${idx + 1}\t${div}\t${name}`
+    const rows = shotList.map(([num, div, name]) =>
+      `${num}\t${div}\t${name}`
     );
     const text = ["通し番号\t男女区分\tチーム名", ...rows].join("\n");
     try {
