@@ -336,7 +336,7 @@ ${csv}
     if (shotIds.has(key)) return;
     setShotList(prev => [...prev, team]);
     setQuery("");
-    inputRef.current?.focus();
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   const removeTeam = (key) => {
