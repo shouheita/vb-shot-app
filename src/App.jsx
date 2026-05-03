@@ -162,6 +162,9 @@ export default function App() {
   const [importText, setImportText] = useState("");
   const [importMsg, setImportMsg] = useState("");
   const [copyMsg, setCopyMsg] = useState("");
+  const [setupDone, setSetupDone] = useState(() => loadFromStorage(TEAMS_KEY, null) !== null);
+  const [setupText, setSetupText] = useState("");
+  const [setupMsg, setSetupMsg] = useState("");
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -236,6 +239,27 @@ export default function App() {
 
   const isCustomTeams = loadFromStorage(TEAMS_KEY, null) !== null;
 
+  const handleSetupImport = () => {
+    try {
+      const parsed = JSON.parse(setupText.trim());
+      if (!Array.isArray(parsed) || parsed.length === 0) throw new Error();
+      const validated = parsed.filter(item =>
+        Array.isArray(item) && item.length === 3 &&
+        typeof item[0] === "number" && typeof item[1] === "string" && typeof item[2] === "string"
+      );
+      if (validated.length === 0) throw new Error();
+      setTeams(validated);
+      localStorage.setItem(TEAMS_KEY, JSON.stringify(validated));
+      setSetupDone(true);
+    } catch {
+      setSetupMsg("❌ JSONの形式が正しくありません\n例: [[1,\"男子\",\"チーム名\"], ...]");
+    }
+  };
+
+  const handleSetupDefault = () => {
+    setSetupDone(true);
+  };
+
   const shotIds = new Set(shotList.map(s => `${s[0]}-${s[1]}`));
 
   const filtered = query.trim() === "" ? [] : teams.filter(([num, div, name]) => {
@@ -261,6 +285,92 @@ export default function App() {
     ["report", "📄 報告書"],
     ["import", "📥 インポート"],
   ];
+
+  if (!setupDone) {
+    return (
+      <div style={{
+        fontFamily: "'Hiragino Sans', 'Noto Sans JP', sans-serif",
+        background: "#0f172a",
+        minHeight: "100vh",
+        color: "#f8fafc",
+        maxWidth: 480,
+        margin: "0 auto",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: "32px 24px",
+      }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📷</div>
+          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>撮影管理アプリ</div>
+          <div style={{ fontSize: 13, color: "#64748b" }}>初回セットアップ</div>
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8, fontWeight: 600 }}>
+            チームデータをインポート（任意）
+          </div>
+          <div style={{ fontSize: 11, color: "#475569", marginBottom: 10, lineHeight: 1.6 }}>
+            JSONを貼り付けてチームデータを読み込めます。<br />
+            フォーマット: <span style={{ color: "#94a3b8", fontFamily: "monospace" }}>[[1,"男子","チーム名"], ...]</span>
+          </div>
+          <textarea
+            value={setupText}
+            onChange={e => setSetupText(e.target.value)}
+            placeholder={'[[1,"男子","チームA"], [2,"女子","チームB"], ...]'}
+            rows={6}
+            style={{
+              width: "100%", padding: "12px 14px", borderRadius: 12,
+              border: "2px solid #334155", background: "#1e293b",
+              color: "#f8fafc", fontSize: 13, fontFamily: "monospace",
+              outline: "none", boxSizing: "border-box", resize: "vertical", lineHeight: 1.5,
+            }}
+            onFocus={e => e.target.style.borderColor = "#3b82f6"}
+            onBlur={e => e.target.style.borderColor = "#334155"}
+          />
+          {setupMsg && (
+            <div style={{
+              marginTop: 8, fontSize: 12, color: "#f87171",
+              background: "#1e293b", borderRadius: 10, padding: "10px 14px",
+              whiteSpace: "pre-wrap", lineHeight: 1.6,
+            }}>
+              {setupMsg}
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={handleSetupImport}
+          disabled={!setupText.trim()}
+          style={{
+            width: "100%", padding: "14px", borderRadius: 12, border: "none",
+            background: setupText.trim() ? "#3b82f6" : "#1e293b",
+            color: setupText.trim() ? "#fff" : "#475569",
+            fontSize: 15, fontWeight: 700,
+            cursor: setupText.trim() ? "pointer" : "default",
+            fontFamily: "inherit", marginBottom: 12,
+          }}
+        >
+          読み込んで開始
+        </button>
+
+        <button
+          onClick={handleSetupDefault}
+          style={{
+            width: "100%", padding: "14px", borderRadius: 12,
+            border: "2px solid #334155", background: "transparent",
+            color: "#64748b", fontSize: 14, fontWeight: 600,
+            cursor: "pointer", fontFamily: "inherit",
+          }}
+        >
+          デフォルトデータで開始
+        </button>
+        <div style={{ fontSize: 11, color: "#334155", textAlign: "center", marginTop: 8 }}>
+          埋め込みの145チームのデータを使用します
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
