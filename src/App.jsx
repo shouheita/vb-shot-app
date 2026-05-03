@@ -192,12 +192,58 @@ export default function App() {
     } catch { setRestoreMsg("❌ 形式エラー"); }
   };
 
+  const buildCsvText = () =>
+    shotList.map(([, div, name], idx) => `${idx + 1},${div},${name}`).join("\n");
+
+  const handleCsvDownload = () => {
+    if (shotList.length === 0) return;
+    const bom = "﻿";
+    const header = "通し番号,男女区分,チーム名\n";
+    const blob = new Blob([bom + header + buildCsvText()], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "撮影リスト.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleSendToClaude = async () => {
+    if (shotList.length === 0) return;
+    const csv = buildCsvText();
+    const prompt = `以下の撮影済みチームリストを集合写真欄のExcelに入力してください。
+
+【フォーマット】通し番号,男女区分,チーム名
+
+【入力先】
+左側スロット1〜15：チーム名→I列、男女区分→AA列（17行目から6行おき: 17,23,29,35,41,47,53,59,65,71,77,83,89,95,101）
+右側スロット16〜：チーム名→AK列、男女区分→BC列（同じ行を再利用）
+
+【データ】
+${csv}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: prompt });
+        return;
+      } catch {}
+    }
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopyMsg("✅ コピーしました。Claudeに貼り付けてください");
+    } catch {
+      setCopyMsg("❌ コピー失敗");
+    }
+    window.open("https://claude.ai", "_blank");
+    setTimeout(() => setCopyMsg(""), 3000);
+  };
+
   const handleCopy = async () => {
     if (shotList.length === 0) return;
     const rows = shotList.map(([num, div, name], idx) =>
-      `${idx + 1}\t${num}\t${div}\t${name}`
+      `${idx + 1}\t${div}\t${name}`
     );
-    const text = ["撮影順\t番号\t部門\tチーム名", ...rows].join("\n");
+    const text = ["通し番号\t男女区分\tチーム名", ...rows].join("\n");
     try {
       await navigator.clipboard.writeText(text);
       setCopyMsg("✅ コピーしました");
@@ -701,6 +747,47 @@ export default function App() {
               )}
             </div>
 
+            {/* Claudeに送る */}
+            <div style={{ marginBottom: 12 }}>
+              <button
+                onClick={handleSendToClaude}
+                disabled={shotList.length === 0}
+                style={{
+                  width: "100%", padding: "16px", borderRadius: 12,
+                  border: "none",
+                  background: shotList.length === 0 ? "#1e293b" : "linear-gradient(135deg, #f97316, #ec4899)",
+                  color: shotList.length === 0 ? "#475569" : "#fff",
+                  fontSize: 15, fontWeight: 700,
+                  cursor: shotList.length === 0 ? "default" : "pointer",
+                  fontFamily: "inherit", marginBottom: 4,
+                }}
+              >
+                ✨ Claudeに送る
+              </button>
+              <div style={{ fontSize: 11, color: "#475569", textAlign: "center" }}>
+                Excel転記プロンプト付きでデータを共有
+              </div>
+            </div>
+
+            {/* CSVダウンロード */}
+            <div style={{ marginBottom: 12 }}>
+              <button
+                onClick={handleCsvDownload}
+                disabled={shotList.length === 0}
+                style={{
+                  width: "100%", padding: "14px", borderRadius: 12,
+                  border: "2px solid #334155", background: "transparent",
+                  color: shotList.length === 0 ? "#334155" : "#f8fafc",
+                  fontSize: 13, fontWeight: 600,
+                  cursor: shotList.length === 0 ? "default" : "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                📥 CSVダウンロード
+              </button>
+            </div>
+
+            {/* クリップボードコピー */}
             <button
               onClick={handleCopy}
               disabled={shotList.length === 0}
@@ -713,7 +800,7 @@ export default function App() {
                 fontFamily: "inherit",
               }}
             >
-              📋 撮影リストをクリップボードにコピー
+              📋 クリップボードにコピー
             </button>
             {copyMsg && (
               <div style={{ marginTop: 8, fontSize: 13, textAlign: "center", color: "#94a3b8" }}>
