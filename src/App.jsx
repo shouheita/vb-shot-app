@@ -174,7 +174,7 @@ function parseUrlTeams() {
 
 export default function App() {
   const [query, setQuery] = useState("");
-  const [numMode, setNumMode] = useState(true);
+  const [numMode, setNumMode] = useState(false);
   const [teams, setTeams] = useState(() => loadFromStorage(TEAMS_KEY, null) ?? DEFAULT_TEAMS);
   const [shotList, setShotList] = useState(() => loadFromStorage(SHOT_LIST_KEY, []));
   const [restoreInput, setRestoreInput] = useState("");
