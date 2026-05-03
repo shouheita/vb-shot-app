@@ -230,30 +230,26 @@ export default function App() {
   const handleSendToClaude = async () => {
     if (shotList.length === 0) return;
     const csv = buildCsvText();
-    const prompt = `以下の撮影済みチームリストを集合写真欄のExcelに入力してください。
+    const prompt = `以下の撮影済みチームリストを、集合写真欄のGoogleスプレッドシートに入力するGoogle Apps Scriptを作成してください。
 
-【フォーマット】通し番号,男女区分,チーム名
+【データ形式】通し番号,男女区分,チーム名
 
-【入力先】
-左側スロット1〜15：チーム名→I列、男女区分→AA列（17行目から6行おき: 17,23,29,35,41,47,53,59,65,71,77,83,89,95,101）
-右側スロット16〜：チーム名→AK列、男女区分→BC列（同じ行を再利用）
+【入力先セル】
+左側スロット（通し番号1〜15）：チーム名→I列、男女区分→AA列
+右側スロット（通し番号16〜）：チーム名→AK列、男女区分→BC列
+開始行：17行目、以降6行おき（17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 83, 89, 95, 101）
 
-【データ】
-${csv}`;
+【撮影済みチームデータ】
+${csv}
 
-    if (navigator.share) {
-      try {
-        await navigator.share({ text: prompt });
-        return;
-      } catch {}
-    }
+スクリプトエディタに貼り付けてすぐ実行できる形式で出力してください。`;
+
     try {
       await navigator.clipboard.writeText(prompt);
-      setCopyMsg("✅ コピーしました。Claudeに貼り付けてください");
+      setCopyMsg("✅ コピーしました");
     } catch {
       setCopyMsg("❌ コピー失敗");
     }
-    window.open("https://claude.ai", "_blank");
     setTimeout(() => setCopyMsg(""), 3000);
   };
 
@@ -794,37 +790,6 @@ ${csv}`;
           <div style={{ paddingTop: 8 }}>
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8, fontWeight: 600 }}>
-                📋 バックアップコード（コピーして保存）
-              </div>
-              {backupCode ? (
-                <>
-                  <div style={{
-                    background: "#1e293b", borderRadius: 10, padding: "12px 14px",
-                    fontSize: 12, color: "#f1f5f9", wordBreak: "break-all",
-                    marginBottom: 8,
-                  }}>
-                    {backupCode}
-                  </div>
-                  <button
-                    onClick={() => navigator.clipboard?.writeText(backupCode)}
-                    style={{
-                      width: "100%", padding: "12px", borderRadius: 12,
-                      border: "none", background: "#3b82f6", color: "#fff",
-                      fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                    }}
-                  >
-                    コードをコピー
-                  </button>
-                </>
-              ) : (
-                <div style={{ fontSize: 12, color: "#475569" }}>
-                  チームを撮影済みに追加するとコードが生成されます
-                </div>
-              )}
-            </div>
-
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8, fontWeight: 600 }}>
                 🔄 コードから復元
               </div>
               <input
@@ -878,7 +843,7 @@ ${csv}`;
                 ✨ Claudeに送る
               </button>
               <div style={{ fontSize: 11, color: "#475569", textAlign: "center" }}>
-                Excel転記プロンプト付きでデータを共有
+                スプレッドシート転記用プロンプトをコピー
               </div>
             </div>
 
