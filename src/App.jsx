@@ -151,6 +151,9 @@ function loadFromStorage(key, fallback) {
   }
 }
 
+const toKatakana = (str) =>
+  str.replace(/[ぁ-ゖ]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+
 function parseUrlTeams() {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -324,8 +327,8 @@ ${csv}
   const shotIds = new Set(shotList.map(s => `${s[0]}-${s[1]}`));
 
   const filtered = query.trim() === "" ? [] : teams.filter(([num, div, name]) => {
-    const q = query.trim();
-    return String(num).startsWith(q) || name.includes(q);
+    const q = toKatakana(query.trim());
+    return String(num).startsWith(query.trim()) || toKatakana(name).includes(q);
   }).slice(0, 8);
 
   const addTeam = (team) => {
