@@ -942,25 +942,8 @@ ${csv}
                 </div>
               )}
 
-              <div style={{ borderTop: "1px solid #1e293b", paddingTop: 16, marginTop: 8 }}>
-                <div style={{ fontSize: 11, color: "#475569", marginBottom: 10 }}>
-                  現在のデータ: <span style={{ color: isCustomTeams ? "#10b981" : "#64748b", fontWeight: 600 }}>
-                    {isCustomTeams ? `カスタム (${teams.length}チーム)` : `デフォルト (${teams.length}チーム)`}
-                  </span>
-                </div>
-                {isCustomTeams && (
-                  <button
-                    onClick={handleResetTeams}
-                    style={{
-                      width: "100%", padding: "12px", borderRadius: 12,
-                      border: "2px solid #334155", background: "transparent",
-                      color: "#f59e0b", fontSize: 13, fontWeight: 600,
-                      cursor: "pointer", fontFamily: "inherit",
-                    }}
-                  >
-                    デフォルトデータに戻す
-                  </button>
-                )}
+              <div style={{ fontSize: 11, color: "#475569", marginTop: 8 }}>
+                現在のデータ: <span style={{ color: "#10b981", fontWeight: 600 }}>{teams.length}チーム</span>
               </div>
             </div>
           </div>
