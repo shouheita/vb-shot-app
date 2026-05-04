@@ -217,6 +217,14 @@ export default function App() {
   const buildCsvText = () =>
     shotList.map(([num, div, name]) => `${num},${div},${name}`).join("\n");
 
+  const buildTeamsParam = (teamsData) =>
+    teamsData.map(([num, div, name]) => `${num},${div},${name}`).join("|");
+
+  const updateUrlWithTeams = (teamsData) => {
+    const param = buildTeamsParam(teamsData);
+    window.history.replaceState({}, "", "?teams=" + encodeURIComponent(param));
+  };
+
   const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1t-TWpobCnjfIahvyz_5afFopbjEdjsZu/edit";
 
   const handleGasCopy = async () => {
@@ -316,6 +324,7 @@ ${csv}
       setTeams(validated);
       localStorage.setItem(TEAMS_KEY, JSON.stringify(validated));
       setShotList([]);
+      updateUrlWithTeams(validated);
       setImportMsg(`✅ ${validated.length}チームを読み込みました（撮影済みリストをリセットしました）`);
       setImportText("");
     } catch {
@@ -344,6 +353,7 @@ ${csv}
       if (validated.length === 0) throw new Error();
       setTeams(validated);
       localStorage.setItem(TEAMS_KEY, JSON.stringify(validated));
+      updateUrlWithTeams(validated);
       setSetupDone(true);
     } catch {
       setSetupMsg("❌ JSONの形式が正しくありません\n例: [[1,\"男子\",\"チーム名\"], ...]");
@@ -445,7 +455,7 @@ ${csv}
             setShotList([]);
             setSetupDone(true);
             setUrlImportData(null);
-            window.history.replaceState({}, "", window.location.pathname);
+            // URLはそのまま保持（データ入りURLとしてブックマーク可能）
           }}
           style={{
             width: "100%", padding: "16px", borderRadius: 12, border: "none",
@@ -942,9 +952,40 @@ ${csv}
                 </div>
               )}
 
-              <div style={{ fontSize: 11, color: "#475569", marginTop: 8 }}>
+              <div style={{ fontSize: 11, color: "#475569", marginTop: 8, marginBottom: 16 }}>
                 現在のデータ: <span style={{ color: "#10b981", fontWeight: 600 }}>{teams.length}チーム</span>
               </div>
+
+              {isCustomTeams && (
+                <div style={{ borderTop: "1px solid #1e293b", paddingTop: 16 }}>
+                  <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8, fontWeight: 600 }}>
+                    🔗 データ入りURLをコピー
+                  </div>
+                  <div style={{ fontSize: 11, color: "#475569", marginBottom: 8, lineHeight: 1.6 }}>
+                    このURLを開くと現在のチームデータが自動でインポートされます
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const url = window.location.href;
+                      try {
+                        await navigator.clipboard.writeText(url);
+                        setImportMsg("✅ URLをコピーしました");
+                      } catch {
+                        setImportMsg("❌ コピー失敗");
+                      }
+                      setTimeout(() => setImportMsg(""), 2000);
+                    }}
+                    style={{
+                      width: "100%", padding: "12px", borderRadius: 12,
+                      border: "2px solid #334155", background: "transparent",
+                      color: "#f8fafc", fontSize: 13, fontWeight: 600,
+                      cursor: "pointer", fontFamily: "inherit",
+                    }}
+                  >
+                    🔗 URLをコピー
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
