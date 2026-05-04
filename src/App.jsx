@@ -421,7 +421,6 @@ ${csv}
     ["list", "📋 撮影済み"],
     ["report", "📄 報告書"],
     ["import", "📥 インポート"],
-    ["help", "❓ 使い方"],
   ];
 
   if (urlImportData) {
@@ -1011,123 +1010,6 @@ ${csv}
           </div>
         )}
 
-        {/* 使い方タブ */}
-        {tab === "help" && (() => {
-          const sections = [
-            {
-              step: "1",
-              title: "初期設定（初回のみ）",
-              color: "#3b82f6",
-              items: [
-                "アプリを開く → セットアップ画面が表示される",
-                "所定のフォーマット（JSON）のチームデータをテキストエリアに貼り付ける",
-                "「読み込んで開始」を押す",
-              ],
-            },
-            {
-              step: "2",
-              title: "撮影の記録",
-              color: "#10b981",
-              items: [
-                "「🔍 検索」タブでチーム名または番号を入力",
-                "候補が出たらタップ → 撮影済みに追加される",
-                "間違えた場合は「📋 撮影済み」タブでタップして取り消し",
-              ],
-            },
-            {
-              step: "3",
-              title: "GASをコピー",
-              color: "#f59e0b",
-              items: [
-                "「📄 報告書」タブを開く",
-                "「📊 GASをコピー」を押す",
-                "クリップボードにスクリプトがコピーされる",
-              ],
-            },
-            {
-              step: "4",
-              title: "スプレッドシートを準備（初回のみ）",
-              color: "#8b5cf6",
-              items: [
-                "撮影報告書のスプレッドシート（.xlsx）を開く",
-                "「ファイル」→「Googleスプレッドシートとして保存」",
-                "新しく開いたGoogleスプレッドシート形式のファイルを以降使用する",
-              ],
-            },
-            {
-              step: "5",
-              title: "Apps Scriptで実行",
-              color: "#ef4444",
-              items: [
-                "スプレッドシートのメニュー「拡張機能」→「Apps Script」を開く",
-                "エディタの中身を全選択（Cmd+A）して削除",
-                "コピーしたGASを貼り付け（Cmd+V）",
-                "Cmd+S で保存",
-                "「▶ 実行」を押す",
-                "初回のみ「詳細」→「安全ではないページに移動」→「許可」",
-                "「入力完了！」が出たら転記完了",
-              ],
-            },
-          ];
-
-          const manualText = sections.map(({ step, title, items }) =>
-            `【STEP ${step}】${title}\n` + items.map((item, i) => `${i + 1}. ${item}`).join("\n")
-          ).join("\n\n");
-
-          return (
-            <div style={{ paddingTop: 8, paddingBottom: 40 }}>
-              <button
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(manualText);
-                    setCopyMsg("✅ マニュアルをコピーしました");
-                  } catch {
-                    setCopyMsg("❌ コピー失敗");
-                  }
-                  setTimeout(() => setCopyMsg(""), 3000);
-                }}
-                style={{
-                  width: "100%", padding: "12px", borderRadius: 12,
-                  border: "2px solid #334155", background: "transparent",
-                  color: "#f8fafc", fontSize: 13, fontWeight: 700,
-                  cursor: "pointer", fontFamily: "inherit", marginBottom: 16,
-                }}
-              >
-                📋 マニュアルをテキストでコピー
-              </button>
-              {copyMsg && (
-                <div style={{ fontSize: 13, textAlign: "center", color: "#94a3b8", marginBottom: 12 }}>
-                  {copyMsg}
-                </div>
-              )}
-              {sections.map(({ step, title, color, items }) => (
-                <div key={step} style={{
-                  background: "#1e293b", borderRadius: 14,
-                  padding: "16px 18px", marginBottom: 12,
-                  borderLeft: `4px solid ${color}`,
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                    <div style={{
-                      width: 24, height: 24, borderRadius: "50%",
-                      background: color, color: "#fff",
-                      fontSize: 12, fontWeight: 800,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      flexShrink: 0,
-                    }}>{step}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#f1f5f9" }}>{title}</div>
-                  </div>
-                  <ol style={{ margin: 0, paddingLeft: 20 }}>
-                    {items.map((item, i) => (
-                      <li key={i} style={{
-                        fontSize: 12, color: "#94a3b8", lineHeight: 1.8, marginBottom: 2,
-                      }}>{item}</li>
-                    ))}
-                  </ol>
-                </div>
-              ))}
-            </div>
-          );
-        })()}
       </div>
     </div>
   );
