@@ -421,6 +421,7 @@ ${csv}
     ["list", "📋 撮影済み"],
     ["report", "📄 報告書"],
     ["import", "📥 インポート"],
+    ["help", "❓ 使い方"],
   ];
 
   if (urlImportData) {
@@ -1007,6 +1008,92 @@ ${csv}
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* 使い方タブ */}
+        {tab === "help" && (
+          <div style={{ paddingTop: 8, paddingBottom: 40 }}>
+            {[
+              {
+                step: "1",
+                title: "初期設定",
+                color: "#3b82f6",
+                items: [
+                  "アプリを開く（初回のみセットアップ画面が出る）",
+                  "「デフォルトデータで開始」を押す",
+                  "カスタムデータがある場合はJSONを貼り付けて「読み込んで開始」",
+                ],
+              },
+              {
+                step: "2",
+                title: "撮影の記録",
+                color: "#10b981",
+                items: [
+                  "「🔍 検索」タブでチーム名または番号を入力",
+                  "候補が出たらタップ → 撮影済みに追加",
+                  "間違えた場合は「📋 撮影済み」タブでタップして取り消し",
+                ],
+              },
+              {
+                step: "3",
+                title: "GASをコピー",
+                color: "#f59e0b",
+                items: [
+                  "「📄 報告書」タブを開く",
+                  "「📊 GASをコピー」を押す",
+                  "クリップボードにスクリプトがコピーされる",
+                ],
+              },
+              {
+                step: "4",
+                title: "スプレッドシートを準備（初回のみ）",
+                color: "#8b5cf6",
+                items: [
+                  "撮影報告書のスプレッドシートを開く",
+                  "「ファイル」→「Googleスプレッドシートとして保存」",
+                  "新しく開いたGoogleスプレッドシート形式のファイルを使う",
+                ],
+              },
+              {
+                step: "5",
+                title: "Apps Scriptで実行",
+                color: "#ef4444",
+                items: [
+                  "スプレッドシートのメニュー「拡張機能」→「Apps Script」を開く",
+                  "エディタの中身を全選択（Cmd+A）して削除",
+                  "コピーしたGASを貼り付け（Cmd+V）",
+                  "Cmd+S で保存",
+                  "「▶ 実行」を押す",
+                  "初回のみ「詳細」→「安全ではないページに移動」→「許可」",
+                  "「入力完了！」が出たら転記完了",
+                ],
+              },
+            ].map(({ step, title, color, items }) => (
+              <div key={step} style={{
+                background: "#1e293b", borderRadius: 14,
+                padding: "16px 18px", marginBottom: 12,
+                borderLeft: `4px solid ${color}`,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                  <div style={{
+                    width: 24, height: 24, borderRadius: "50%",
+                    background: color, color: "#fff",
+                    fontSize: 12, fontWeight: 800,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}>{step}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#f1f5f9" }}>{title}</div>
+                </div>
+                <ol style={{ margin: 0, paddingLeft: 20 }}>
+                  {items.map((item, i) => (
+                    <li key={i} style={{
+                      fontSize: 12, color: "#94a3b8", lineHeight: 1.8, marginBottom: 2,
+                    }}>{item}</li>
+                  ))}
+                </ol>
+              </div>
+            ))}
           </div>
         )}
       </div>
