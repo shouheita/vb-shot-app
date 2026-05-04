@@ -154,21 +154,34 @@ function loadFromStorage(key, fallback) {
 const toKatakana = (str) =>
   str.replace(/[ぁ-ゖ]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60));
 
-function parseUrlTeams() {
+function parseUrlData() {
   try {
     const params = new URLSearchParams(window.location.search);
-    const raw = params.get("teams");
-    if (!raw) return null;
-    const parsed = raw.split("|").map(t => {
-      const idx1 = t.indexOf(",");
-      const idx2 = t.indexOf(",", idx1 + 1);
-      const num = parseInt(t.slice(0, idx1));
-      const div = t.slice(idx1 + 1, idx2);
-      const name = t.slice(idx2 + 1);
-      if (!num || !div || !name) return null;
-      return [num, div, name];
-    }).filter(Boolean);
-    return parsed.length > 0 ? parsed : null;
+    const teamsRaw = params.get("teams");
+    const shotRaw = params.get("shot");
+
+    let teams = null;
+    if (teamsRaw) {
+      const parsed = teamsRaw.split("|").map(t => {
+        const idx1 = t.indexOf(",");
+        const idx2 = t.indexOf(",", idx1 + 1);
+        const num = parseInt(t.slice(0, idx1));
+        const div = t.slice(idx1 + 1, idx2);
+        const name = t.slice(idx2 + 1);
+        if (!num || !div || !name) return null;
+        return [num, div, name];
+      }).filter(Boolean);
+      if (parsed.length > 0) teams = parsed;
+    }
+
+    let shotNums = null;
+    if (shotRaw) {
+      const nums = shotRaw.split(",").map(Number).filter(n => n > 0);
+      if (nums.length > 0) shotNums = nums;
+    }
+
+    if (!teams && !shotNums) return null;
+    return { teams, shotNums };
   } catch { return null; }
 }
 
@@ -186,11 +199,14 @@ export default function App() {
   const [setupDone, setSetupDone] = useState(() => loadFromStorage(TEAMS_KEY, null) !== null);
   const [setupText, setSetupText] = useState("");
   const [setupMsg, setSetupMsg] = useState("");
-  const [urlImportData, setUrlImportData] = useState(() => parseUrlTeams());
+  const [urlImportData, setUrlImportData] = useState(() => parseUrlData());
   const inputRef = useRef(null);
 
   useEffect(() => {
     try { localStorage.setItem(SHOT_LIST_KEY, JSON.stringify(shotList)); } catch {}
+    if (setupDone && localStorage.getItem(TEAMS_KEY)) {
+      updateUrl(teams, shotList);
+    }
   }, [shotList]);
 
   const backupCode = shotList.length > 0
@@ -220,10 +236,18 @@ export default function App() {
   const buildTeamsParam = (teamsData) =>
     teamsData.map(([num, div, name]) => `${num},${div},${name}`).join("|");
 
-  const updateUrlWithTeams = (teamsData) => {
-    const param = buildTeamsParam(teamsData);
-    window.history.replaceState({}, "", "?teams=" + param);
+  const buildShotParam = (shotData) =>
+    shotData.map(([num]) => num).join(",");
+
+  const updateUrl = (teamsData, shotData) => {
+    const tp = buildTeamsParam(teamsData);
+    const sp = buildShotParam(shotData);
+    let url = "?teams=" + tp;
+    if (sp) url += "&shot=" + sp;
+    window.history.replaceState({}, "", url);
   };
+
+  const updateUrlWithTeams = (teamsData) => updateUrl(teamsData, shotList);
 
   const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1t-TWpobCnjfIahvyz_5afFopbjEdjsZu/edit";
 
@@ -391,10 +415,16 @@ ${csv}
   ];
 
   if (urlImportData) {
-    const divCount = urlImportData.reduce((acc, [, div]) => {
+    const { teams: importTeams, shotNums } = urlImportData;
+    const teamsToShow = importTeams ?? teams;
+    const divCount = teamsToShow.reduce((acc, [, div]) => {
       acc[div] = (acc[div] || 0) + 1;
       return acc;
     }, {});
+    const shotTeams = shotNums
+      ? shotNums.map(num => teamsToShow.find(t => t[0] === num)).filter(Boolean)
+      : [];
+
     return (
       <div style={{
         fontFamily: "'Hiragino Sans', 'Noto Sans JP', sans-serif",
@@ -405,57 +435,70 @@ ${csv}
       }}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>チームデータをインポート</div>
-          <div style={{ fontSize: 13, color: "#64748b" }}>Claudeが生成したデータを読み込みます</div>
+          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>データを引き継ぐ</div>
+          <div style={{ fontSize: 13, color: "#64748b" }}>URLから状態を復元します</div>
         </div>
 
-        <div style={{ background: "#1e293b", borderRadius: 14, padding: "16px 18px", marginBottom: 20 }}>
-          <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 10, fontWeight: 600 }}>インポート内容</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>
-            {urlImportData.length} チーム
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {Object.entries(divCount).map(([div, count]) => (
-              <div key={div} style={{
-                background: DIV_BG[div] ?? "#f1f5f9",
-                color: DIV_COLOR[div] ?? "#334155",
-                borderRadius: 8, padding: "4px 12px",
-                fontSize: 12, fontWeight: 700,
-              }}>
-                {div} {count}チーム
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ maxHeight: 200, overflowY: "auto", marginBottom: 20 }}>
-          {urlImportData.map(([num, div, name]) => (
-            <div key={`${num}-${div}`} style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "8px 0", borderBottom: "1px solid #1e293b",
-            }}>
-              <div style={{
-                minWidth: 32, height: 32, borderRadius: 6,
-                background: DIV_BG[div] ?? "#f1f5f9",
-                display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: DIV_COLOR[div] ?? "#334155", lineHeight: 1 }}>{num}</div>
-                <div style={{ fontSize: 7, color: DIV_COLOR[div] ?? "#334155", fontWeight: 600 }}>{div}</div>
-              </div>
-              <div style={{ fontSize: 13, color: "#cbd5e1" }}>{name}</div>
+        {importTeams && (
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: "16px 18px", marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8, fontWeight: 600 }}>チームデータ</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>
+              {importTeams.length} チーム
             </div>
-          ))}
-        </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {Object.entries(divCount).map(([div, count]) => (
+                <div key={div} style={{
+                  background: DIV_BG[div] ?? "#f1f5f9",
+                  color: DIV_COLOR[div] ?? "#334155",
+                  borderRadius: 8, padding: "4px 12px",
+                  fontSize: 12, fontWeight: 700,
+                }}>
+                  {div} {count}チーム
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {shotTeams.length > 0 && (
+          <div style={{ background: "#1e293b", borderRadius: 14, padding: "16px 18px", marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8, fontWeight: 600 }}>撮影済み</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: "#10b981", marginBottom: 10 }}>
+              {shotTeams.length} チーム
+            </div>
+            <div style={{ maxHeight: 160, overflowY: "auto" }}>
+              {shotTeams.map(([num, div, name], i) => (
+                <div key={`${num}-${div}`} style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "6px 0", borderBottom: "1px solid #0f172a",
+                }}>
+                  <div style={{ fontSize: 11, color: "#475569", minWidth: 18, textAlign: "right" }}>{i + 1}</div>
+                  <div style={{
+                    minWidth: 30, height: 30, borderRadius: 6,
+                    background: DIV_BG[div] ?? "#f1f5f9",
+                    display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center",
+                  }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: DIV_COLOR[div] ?? "#334155", lineHeight: 1 }}>{num}</div>
+                    <div style={{ fontSize: 7, color: DIV_COLOR[div] ?? "#334155", fontWeight: 600 }}>{div}</div>
+                  </div>
+                  <div style={{ fontSize: 12, color: "#cbd5e1" }}>{name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <button
           onClick={() => {
-            setTeams(urlImportData);
-            localStorage.setItem(TEAMS_KEY, JSON.stringify(urlImportData));
-            setShotList([]);
+            const teamsData = importTeams ?? teams;
+            if (importTeams) {
+              setTeams(importTeams);
+              localStorage.setItem(TEAMS_KEY, JSON.stringify(importTeams));
+            }
+            setShotList(shotTeams);
             setSetupDone(true);
             setUrlImportData(null);
-            // URLはそのまま保持（データ入りURLとしてブックマーク可能）
           }}
           style={{
             width: "100%", padding: "16px", borderRadius: 12, border: "none",
@@ -464,7 +507,7 @@ ${csv}
             cursor: "pointer", fontFamily: "inherit", marginBottom: 12,
           }}
         >
-          インポートして開始
+          引き継いで開始
         </button>
         <button
           onClick={() => {
