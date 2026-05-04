@@ -908,6 +908,23 @@ ${csv}
                 >
                   📊 GASをコピー
                 </button>
+                <button
+                  onClick={handleSendToClaude}
+                  style={{
+                    width: "100%", padding: "14px", borderRadius: 14,
+                    border: "none",
+                    background: "linear-gradient(135deg, #f97316, #ec4899)",
+                    color: "#fff",
+                    fontSize: 14, fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: "inherit", marginBottom: 4,
+                  }}
+                >
+                  ⭐️ Claudeに送るプロンプトをコピー
+                </button>
+                <div style={{ fontSize: 11, color: "#475569", textAlign: "center", marginBottom: 8 }}>
+                  Claudeのチャットに貼り付けて使用
+                </div>
               </>
             )}
             {copyMsg && (
