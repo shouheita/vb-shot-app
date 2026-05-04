@@ -204,9 +204,6 @@ export default function App() {
 
   useEffect(() => {
     try { localStorage.setItem(SHOT_LIST_KEY, JSON.stringify(shotList)); } catch {}
-    if (setupDone && localStorage.getItem(TEAMS_KEY)) {
-      updateUrl(teams, shotList);
-    }
   }, [shotList]);
 
   const backupCode = shotList.length > 0
@@ -312,6 +309,19 @@ ${csv}
     try {
       await navigator.clipboard.writeText(prompt);
       setCopyMsg("✅ コピーしました");
+    } catch {
+      setCopyMsg("❌ コピー失敗");
+    }
+    setTimeout(() => setCopyMsg(""), 3000);
+  };
+
+  const handleCopyPcUrl = async () => {
+    if (shotList.length === 0) return;
+    const shotParam = shotList.map(([num]) => num).join(",");
+    const url = window.location.origin + window.location.pathname + "?shot=" + shotParam;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopyMsg("✅ URLをコピーしました");
     } catch {
       setCopyMsg("❌ コピー失敗");
     }
@@ -491,7 +501,6 @@ ${csv}
 
         <button
           onClick={() => {
-            const teamsData = importTeams ?? teams;
             if (importTeams) {
               setTeams(importTeams);
               localStorage.setItem(TEAMS_KEY, JSON.stringify(importTeams));
@@ -499,6 +508,8 @@ ${csv}
             setShotList(shotTeams);
             setSetupDone(true);
             setUrlImportData(null);
+            window.history.replaceState({}, "", window.location.pathname);
+            if (shotTeams.length > 0) setTab("report");
           }}
           style={{
             width: "100%", padding: "16px", borderRadius: 12, border: "none",
@@ -918,20 +929,41 @@ ${csv}
               </div>
             </div>
 
+            {/* PCで開く */}
+            <div style={{ marginBottom: 12 }}>
+              <button
+                onClick={handleCopyPcUrl}
+                disabled={shotList.length === 0}
+                style={{
+                  width: "100%", padding: "14px", borderRadius: 12,
+                  border: "2px solid #334155", background: "transparent",
+                  color: shotList.length === 0 ? "#334155" : "#f8fafc",
+                  fontSize: 14, fontWeight: 700,
+                  cursor: shotList.length === 0 ? "default" : "pointer",
+                  fontFamily: "inherit", marginBottom: 4,
+                }}
+              >
+                🔗 PCで開く用URLをコピー
+              </button>
+              <div style={{ fontSize: 11, color: "#475569", textAlign: "center" }}>
+                PCでURLを開くと撮影済みが引き継がれます
+              </div>
+            </div>
+
             {/* クリップボードコピー */}
             <button
               onClick={handleCopy}
               disabled={shotList.length === 0}
               style={{
                 width: "100%", padding: "14px", borderRadius: 12,
-                border: "2px solid #334155", background: "transparent",
-                color: shotList.length === 0 ? "#334155" : "#94a3b8",
+                border: "2px solid #1e293b", background: "transparent",
+                color: shotList.length === 0 ? "#1e293b" : "#475569",
                 fontSize: 13, fontWeight: 600,
                 cursor: shotList.length === 0 ? "default" : "pointer",
                 fontFamily: "inherit",
               }}
             >
-              📋 クリップボードにコピー
+              📋 テキストをコピー
             </button>
             {copyMsg && (
               <div style={{ marginTop: 8, fontSize: 13, textAlign: "center", color: "#94a3b8" }}>
