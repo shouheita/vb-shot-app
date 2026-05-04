@@ -281,11 +281,10 @@ export default function App() {
 }`;
     try {
       await navigator.clipboard.writeText(gas);
-      setCopyMsg("✅ GASをコピーしました");
+      setCopyMsg("✅ コピーしました");
     } catch {
       setCopyMsg("❌ コピー失敗");
     }
-    window.open(SPREADSHEET_URL, "_blank");
     setTimeout(() => setCopyMsg(""), 3000);
   };
 
@@ -885,86 +884,32 @@ ${csv}
         {/* 報告書タブ */}
         {tab === "report" && (
           <div style={{ paddingTop: 8 }}>
-            {/* Claudeに送る */}
-            <div style={{ marginBottom: 12 }}>
-              <button
-                onClick={handleSendToClaude}
-                disabled={shotList.length === 0}
-                style={{
-                  width: "100%", padding: "16px", borderRadius: 12,
-                  border: "none",
-                  background: shotList.length === 0 ? "#1e293b" : "linear-gradient(135deg, #f97316, #ec4899)",
-                  color: shotList.length === 0 ? "#475569" : "#fff",
-                  fontSize: 15, fontWeight: 700,
-                  cursor: shotList.length === 0 ? "default" : "pointer",
-                  fontFamily: "inherit", marginBottom: 4,
-                }}
-              >
-                ✨ Claudeに送る
-              </button>
-              <div style={{ fontSize: 11, color: "#475569", textAlign: "center" }}>
-                スプレッドシート転記用プロンプトをコピー
+            {shotList.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0", color: "#334155" }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
+                <div style={{ fontSize: 14 }}>撮影済みチームがありません</div>
               </div>
-            </div>
-
-            {/* GASコピー＋スプレッドシートを開く */}
-            <div style={{ marginBottom: 12 }}>
-              <button
-                onClick={handleGasCopy}
-                disabled={shotList.length === 0}
-                style={{
-                  width: "100%", padding: "14px", borderRadius: 12,
-                  border: "none",
-                  background: shotList.length === 0 ? "#1e293b" : "#10b981",
-                  color: shotList.length === 0 ? "#475569" : "#fff",
-                  fontSize: 14, fontWeight: 700,
-                  cursor: shotList.length === 0 ? "default" : "pointer",
-                  fontFamily: "inherit", marginBottom: 4,
-                }}
-              >
-                📊 スプレッドシートに転記
-              </button>
-              <div style={{ fontSize: 11, color: "#475569", textAlign: "center" }}>
-                GASをコピー＋シートを開きます
-              </div>
-            </div>
-
-            {/* PCで開く */}
-            <div style={{ marginBottom: 12 }}>
-              <button
-                onClick={handleCopyPcUrl}
-                disabled={shotList.length === 0}
-                style={{
-                  width: "100%", padding: "14px", borderRadius: 12,
-                  border: "2px solid #334155", background: "transparent",
-                  color: shotList.length === 0 ? "#334155" : "#f8fafc",
-                  fontSize: 14, fontWeight: 700,
-                  cursor: shotList.length === 0 ? "default" : "pointer",
-                  fontFamily: "inherit", marginBottom: 4,
-                }}
-              >
-                🔗 PCで開く用URLをコピー
-              </button>
-              <div style={{ fontSize: 11, color: "#475569", textAlign: "center" }}>
-                PCでURLを開くと撮影済みが引き継がれます
-              </div>
-            </div>
-
-            {/* クリップボードコピー */}
-            <button
-              onClick={handleCopy}
-              disabled={shotList.length === 0}
-              style={{
-                width: "100%", padding: "14px", borderRadius: 12,
-                border: "2px solid #1e293b", background: "transparent",
-                color: shotList.length === 0 ? "#1e293b" : "#475569",
-                fontSize: 13, fontWeight: 600,
-                cursor: shotList.length === 0 ? "default" : "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              📋 テキストをコピー
-            </button>
+            ) : (
+              <>
+                <div style={{ fontSize: 12, color: "#475569", marginBottom: 16, marginTop: 4, lineHeight: 1.7 }}>
+                  GASスクリプトをコピーして、PCのスプレッドシートのスクリプトエディタに貼り付けて実行してください。
+                </div>
+                <button
+                  onClick={handleGasCopy}
+                  style={{
+                    width: "100%", padding: "18px", borderRadius: 14,
+                    border: "none",
+                    background: "linear-gradient(135deg, #10b981, #3b82f6)",
+                    color: "#fff",
+                    fontSize: 16, fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: "inherit", marginBottom: 8,
+                  }}
+                >
+                  📊 GASをコピー
+                </button>
+              </>
+            )}
             {copyMsg && (
               <div style={{ marginTop: 8, fontSize: 13, textAlign: "center", color: "#94a3b8" }}>
                 {copyMsg}
