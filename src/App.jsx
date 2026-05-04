@@ -217,17 +217,47 @@ export default function App() {
   const buildCsvText = () =>
     shotList.map(([num, div, name]) => `${num},${div},${name}`).join("\n");
 
-  const handleCsvDownload = () => {
+  const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1t-TWpobCnjfIahvyz_5afFopbjEdjsZu/edit";
+
+  const handleGasCopy = async () => {
     if (shotList.length === 0) return;
-    const bom = "﻿";
-    const header = "通し番号,男女区分,チーム名\n";
-    const blob = new Blob([bom + header + buildCsvText()], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "撮影リスト.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    const dataLines = buildCsvText();
+    const gas = `function fillReport() {
+  const data = \`${dataLines}\`;
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName('撮影報告書');
+  const rows = [17,23,29,35,41,47,53,59,65,71,77,83,89,95,101];
+
+  data.trim().split('\\n').forEach(line => {
+    const idx1 = line.indexOf(',');
+    const idx2 = line.indexOf(',', idx1 + 1);
+    const num = parseInt(line.slice(0, idx1));
+    const div = line.slice(idx1 + 1, idx2);
+    const name = line.slice(idx2 + 1);
+    if (!num || !div || !name) return;
+
+    if (num <= 15) {
+      const row = rows[num - 1];
+      sheet.getRange('I' + row).setValue(name);
+      sheet.getRange('AA' + row).setValue(div);
+    } else if (num <= 30) {
+      const row = rows[num - 16];
+      sheet.getRange('AK' + row).setValue(name);
+      sheet.getRange('BC' + row).setValue(div);
+    }
+  });
+
+  SpreadsheetApp.getUi().alert('入力完了！');
+}`;
+    try {
+      await navigator.clipboard.writeText(gas);
+      setCopyMsg("✅ GASをコピーしました");
+    } catch {
+      setCopyMsg("❌ コピー失敗");
+    }
+    window.open(SPREADSHEET_URL, "_blank");
+    setTimeout(() => setCopyMsg(""), 3000);
   };
 
   const handleSendToClaude = async () => {
@@ -813,22 +843,26 @@ ${csv}
               </div>
             </div>
 
-            {/* CSVダウンロード */}
+            {/* GASコピー＋スプレッドシートを開く */}
             <div style={{ marginBottom: 12 }}>
               <button
-                onClick={handleCsvDownload}
+                onClick={handleGasCopy}
                 disabled={shotList.length === 0}
                 style={{
                   width: "100%", padding: "14px", borderRadius: 12,
-                  border: "2px solid #334155", background: "transparent",
-                  color: shotList.length === 0 ? "#334155" : "#f8fafc",
-                  fontSize: 13, fontWeight: 600,
+                  border: "none",
+                  background: shotList.length === 0 ? "#1e293b" : "#10b981",
+                  color: shotList.length === 0 ? "#475569" : "#fff",
+                  fontSize: 14, fontWeight: 700,
                   cursor: shotList.length === 0 ? "default" : "pointer",
-                  fontFamily: "inherit",
+                  fontFamily: "inherit", marginBottom: 4,
                 }}
               >
-                📥 CSVダウンロード
+                📊 スプレッドシートに転記
               </button>
+              <div style={{ fontSize: 11, color: "#475569", textAlign: "center" }}>
+                GASをコピー＋シートを開きます
+              </div>
             </div>
 
             {/* クリップボードコピー */}
