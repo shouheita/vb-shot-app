@@ -258,20 +258,20 @@ export default function App() {
     .getSheetByName('撮影報告書');
   const rows = [17,23,29,35,41,47,53,59,65,71,77,83,89,95,101];
 
-  data.trim().split('\\n').forEach(line => {
+  data.trim().split('\\n').forEach((line, i) => {
     const idx1 = line.indexOf(',');
     const idx2 = line.indexOf(',', idx1 + 1);
-    const num = parseInt(line.slice(0, idx1));
     const div = line.slice(idx1 + 1, idx2);
     const name = line.slice(idx2 + 1);
-    if (!num || !div || !name) return;
+    if (!div || !name) return;
 
-    if (num <= 15) {
-      const row = rows[num - 1];
+    const slot = i + 1;
+    if (slot <= 15) {
+      const row = rows[slot - 1];
       sheet.getRange('I' + row).setValue(name);
       sheet.getRange('AA' + row).setValue(div);
-    } else if (num <= 30) {
-      const row = rows[num - 16];
+    } else if (slot <= 30) {
+      const row = rows[slot - 16];
       sheet.getRange('AK' + row).setValue(name);
       sheet.getRange('BC' + row).setValue(div);
     }
