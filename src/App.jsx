@@ -222,7 +222,7 @@ export default function App() {
 
   const updateUrlWithTeams = (teamsData) => {
     const param = buildTeamsParam(teamsData);
-    window.history.replaceState({}, "", "?teams=" + encodeURIComponent(param));
+    window.history.replaceState({}, "", "?teams=" + param);
   };
 
   const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1t-TWpobCnjfIahvyz_5afFopbjEdjsZu/edit";
