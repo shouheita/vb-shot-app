@@ -254,8 +254,13 @@ export default function App() {
     const gas = `function fillReport() {
   const data = \`${dataLines}\`;
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName('撮影報告書');
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('撮影報告書');
+  if (!sheet) {
+    const names = ss.getSheets().map(s => s.getName()).join('、');
+    SpreadsheetApp.getUi().alert('シート「撮影報告書」が見つかりません。\\n現在のシート名: ' + names + '\\n\\nシート名を確認して「撮影報告書」に変更してください。');
+    return;
+  }
   const rows = [17,23,29,35,41,47,53,59,65,71,77,83,89,95,101];
 
   data.trim().split('\\n').forEach((line, i) => {
