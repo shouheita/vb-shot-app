@@ -291,7 +291,7 @@ export default function App() {
   const handleSendToClaude = async () => {
     if (shotList.length === 0) return;
     const text = shotList.map(([num, div, name], i) =>
-      `${i + 1}. ${div}　${name}`
+      `${i + 1}. ${name}　${div}`
     ).join("\n\n");
     try {
       await navigator.clipboard.writeText(text);
