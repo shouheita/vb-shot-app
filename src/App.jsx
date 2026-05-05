@@ -255,10 +255,10 @@ export default function App() {
   const data = \`${dataLines}\`;
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName('撮影報告書');
+  const sheet = ss.getSheets().find(s => s.getName().includes('撮影報告書'));
   if (!sheet) {
     const names = ss.getSheets().map(s => s.getName()).join('、');
-    SpreadsheetApp.getUi().alert('シート「撮影報告書」が見つかりません。\\n現在のシート名: ' + names + '\\n\\nシート名を確認して「撮影報告書」に変更してください。');
+    SpreadsheetApp.getUi().alert('「撮影報告書」を含むシートが見つかりません。\\n現在のシート名: ' + names);
     return;
   }
   const rows = [17,23,29,35,41,47,53,59,65,71,77,83,89,95,101];
