@@ -605,20 +605,6 @@ ${csv}
           読み込んで開始
         </button>
 
-        <button
-          onClick={handleSetupDefault}
-          style={{
-            width: "100%", padding: "14px", borderRadius: 12,
-            border: "2px solid #334155", background: "transparent",
-            color: "#64748b", fontSize: 14, fontWeight: 600,
-            cursor: "pointer", fontFamily: "inherit",
-          }}
-        >
-          デフォルトデータで開始
-        </button>
-        <div style={{ fontSize: 11, color: "#334155", textAlign: "center", marginTop: 8 }}>
-          埋め込みの145チームのデータを使用します
-        </div>
       </div>
     );
   }
