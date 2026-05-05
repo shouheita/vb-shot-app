@@ -894,10 +894,10 @@ export default function App() {
                     fontFamily: "inherit", marginBottom: 4,
                   }}
                 >
-                  ⭐️ Claudeに送るプロンプトをコピー
+                  📝 テキストデータを出力
                 </button>
                 <div style={{ fontSize: 11, color: "#475569", textAlign: "center", marginBottom: 8 }}>
-                  Claudeのチャットに貼り付けて使用
+                  チーム名・男女区分をテキストでコピー
                 </div>
               </>
             )}
