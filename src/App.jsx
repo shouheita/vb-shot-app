@@ -290,23 +290,11 @@ export default function App() {
 
   const handleSendToClaude = async () => {
     if (shotList.length === 0) return;
-    const csv = buildCsvText();
-    const prompt = `以下の撮影済みチームリストを、集合写真欄のGoogleスプレッドシートに入力するGoogle Apps Scriptを作成してください。
-
-【データ形式】通し番号,男女区分,チーム名
-
-【入力先セル】
-左側スロット（通し番号1〜15）：チーム名→I列、男女区分→AA列
-右側スロット（通し番号16〜）：チーム名→AK列、男女区分→BC列
-開始行：17行目、以降6行おき（17, 23, 29, 35, 41, 47, 53, 59, 65, 71, 77, 83, 89, 95, 101）
-
-【撮影済みチームデータ】
-${csv}
-
-スクリプトエディタに貼り付けてすぐ実行できる形式で出力してください。`;
-
+    const text = shotList.map(([num, div, name], i) =>
+      `${i + 1}. ${div}　${name}`
+    ).join("\n\n");
     try {
-      await navigator.clipboard.writeText(prompt);
+      await navigator.clipboard.writeText(text);
       setCopyMsg("✅ コピーしました");
     } catch {
       setCopyMsg("❌ コピー失敗");
