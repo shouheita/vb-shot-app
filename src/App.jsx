@@ -165,11 +165,13 @@ function parseUrlData() {
       const parsed = teamsRaw.split("|").map(t => {
         const idx1 = t.indexOf(",");
         const idx2 = t.indexOf(",", idx1 + 1);
+        const idx3 = t.indexOf(",", idx2 + 1);
         const num = parseInt(t.slice(0, idx1));
         const div = t.slice(idx1 + 1, idx2);
-        const name = t.slice(idx2 + 1);
+        const name = idx3 >= 0 ? t.slice(idx2 + 1, idx3) : t.slice(idx2 + 1);
+        const yomi = idx3 >= 0 ? t.slice(idx3 + 1) : undefined;
         if (!num || !div || !name) return null;
-        return [num, div, name];
+        return yomi ? [num, div, name, yomi] : [num, div, name];
       }).filter(Boolean);
       if (parsed.length > 0) teams = parsed;
     }
@@ -231,7 +233,9 @@ export default function App() {
     shotList.map(([num, div, name]) => `${num},${div},${name}`).join("\n");
 
   const buildTeamsParam = (teamsData) =>
-    teamsData.map(([num, div, name]) => `${num},${div},${name}`).join("|");
+    teamsData.map(([num, div, name, yomi]) =>
+      yomi ? `${num},${div},${name},${yomi}` : `${num},${div},${name}`
+    ).join("|");
 
   const buildShotParam = (shotData) =>
     shotData.map(([num]) => num).join(",");
@@ -335,7 +339,7 @@ export default function App() {
       if (!Array.isArray(parsed) || parsed.length === 0) throw new Error();
       const validated = parsed.filter(item =>
         Array.isArray(item) &&
-        item.length === 3 &&
+        (item.length === 3 || item.length === 4) &&
         typeof item[0] === "number" &&
         typeof item[1] === "string" &&
         typeof item[2] === "string"
@@ -348,7 +352,7 @@ export default function App() {
       setImportMsg(`✅ ${validated.length}チームを読み込みました（撮影済みリストをリセットしました）`);
       setImportText("");
     } catch {
-      setImportMsg("❌ JSONの形式が正しくありません\n例: [[1,\"男子\",\"チーム名\"], ...]");
+      setImportMsg("❌ JSONの形式が正しくありません\n例: [[1,\"男子\",\"チーム名\",\"よみがな\"], ...]");
     }
   };
 
@@ -367,7 +371,7 @@ export default function App() {
       const parsed = JSON.parse(setupText.trim());
       if (!Array.isArray(parsed) || parsed.length === 0) throw new Error();
       const validated = parsed.filter(item =>
-        Array.isArray(item) && item.length === 3 &&
+        Array.isArray(item) && (item.length === 3 || item.length === 4) &&
         typeof item[0] === "number" && typeof item[1] === "string" && typeof item[2] === "string"
       );
       if (validated.length === 0) throw new Error();
@@ -386,9 +390,11 @@ export default function App() {
 
   const shotIds = new Set(shotList.map(s => `${s[0]}-${s[1]}`));
 
-  const filtered = query.trim() === "" ? [] : teams.filter(([num, div, name]) => {
+  const filtered = query.trim() === "" ? [] : teams.filter(([num, div, name, yomi]) => {
     const q = toKatakana(query.trim());
-    return String(num).startsWith(query.trim()) || toKatakana(name).includes(q);
+    return String(num).startsWith(query.trim())
+      || toKatakana(name).includes(q)
+      || (yomi && toKatakana(yomi).includes(q));
   }).slice(0, 8);
 
   const addTeam = (team) => {
