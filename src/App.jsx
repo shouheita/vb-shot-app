@@ -271,6 +271,14 @@ export default function App() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   const rows = [17,23,29,35,41,47,53,59,65,71,77,83,89,95,101];
 
+  // 既存データをクリア
+  rows.forEach(row => {
+    sheet.getRange('I' + row).clearContent();
+    sheet.getRange('AA' + row).clearContent();
+    sheet.getRange('AK' + row).clearContent();
+    sheet.getRange('BC' + row).clearContent();
+  });
+
   data.trim().split('\\n').forEach((line, i) => {
     const idx1 = line.indexOf(',');
     const idx2 = line.indexOf(',', idx1 + 1);
