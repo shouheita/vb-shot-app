@@ -206,6 +206,16 @@ export default function App() {
 
   useEffect(() => {
     try { localStorage.setItem(SHOT_LIST_KEY, JSON.stringify(shotList)); } catch {}
+    // URLにも保存（localStorageが消えても復元できるように）
+    const sp = shotList.map(([num]) => num).join(",");
+    const current = new URLSearchParams(window.location.search);
+    if (sp) {
+      current.set("shot", sp);
+    } else {
+      current.delete("shot");
+    }
+    const newUrl = current.toString() ? "?" + current.toString() : window.location.pathname;
+    window.history.replaceState({}, "", newUrl);
   }, [shotList]);
 
   const backupCode = shotList.length > 0
@@ -497,11 +507,13 @@ export default function App() {
               setTeams(importTeams);
               localStorage.setItem(TEAMS_KEY, JSON.stringify(importTeams));
             }
-            setShotList(shotTeams);
+            // shot dataがある時だけ上書き（ない時は既存の撮影済みを保持）
+            if (shotTeams.length > 0) {
+              setShotList(shotTeams);
+              setTab("report");
+            }
             setSetupDone(true);
             setUrlImportData(null);
-            window.history.replaceState({}, "", window.location.pathname);
-            if (shotTeams.length > 0) setTab("report");
           }}
           style={{
             width: "100%", padding: "16px", borderRadius: 12, border: "none",
