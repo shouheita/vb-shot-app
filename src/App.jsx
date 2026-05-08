@@ -272,6 +272,7 @@ export default function App() {
   const rows = [17,23,29,35,41,47,53,59,65,71,77,83,89,95,101];
 
   // 既存データをクリア
+  ['C4:D6','G4:AO6','AU4:BD6','H10:AB12'].forEach(r => sheet.getRange(r).clearContent());
   rows.forEach(row => {
     sheet.getRange('I' + row).clearContent();
     sheet.getRange('AA' + row).clearContent();
